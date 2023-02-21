@@ -1,12 +1,44 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import axios from 'axios';
+import PropTypes from 'prop-types';
 import './DropFileInput.css'
 
-import {ImageConfig} from '../../config/imagesConfig'
+import {ImgConfigs} from '../../config/imagesConfig'
 import uploadImg from '../../assets/cloud-upload-regular-240.png'
 
-const DropFileInput = () => {
+const DropFileInput = (props) => {
 
-    const [fileList, setFileList] = useState([])
+    const handleFileDrop = (event) => {
+        onFileDrop(event)
+        onFileChange(event.target.files)
+    }
+
+    const onFileChange = (files) => {
+        const formData = new FormData();
+        formData.append('file', files[0]);
+
+        axios({
+            url: 'http://onecue.cafe24app.com/dev/dnd',
+            method: 'POST',
+            headers: {  'Content-Type' : 'multipart/form-data' },
+            data: {
+                formData: formData,
+                filename: files[0].name
+            },
+          }).then(response => {
+            alert('통신성공');
+            console.log(response);
+          }).catch((error)=>{
+            alert('통신실패')
+            console.log(error)
+          })
+        }
+
+    const [fileList, setFileList] = useState(()=>{
+        const savedList = localStorage.getItem('fileList')
+        return savedList ? JSON.parse(savedList) : []
+    })
+
 
     const wrapperRef = useRef(null)
     const onDragEnter = () => wrapperRef.current.classList.add('dragover')
@@ -18,12 +50,32 @@ const DropFileInput = () => {
         if( newFile ) {
             const updatedList = [...fileList, newFile]
             setFileList(updatedList)
+            props.onFileChange(updatedList)
+            localStorage.setItem('fileList', JSON.stringify(updatedList))
         }
     }
 
+    const fileRemove = (file) => {
+            const updatedList = fileList.filter(item => item !== file)
+            setFileList(updatedList)
+            props.onFileChange(updatedList)
+            localStorage.setItem('fileList', JSON.stringify(updatedList))
+    }
+
+        useEffect(() => {
+            const savedList = JSON.parse(localStorage.getItem('fileList')) || [];
+            setFileList(savedList);
+        }, []);
+
+        useEffect(()=>{
+            localStorage.setItem('fileList',JSON.stringify(fileList))
+            console.log(JSON.stringify(fileList))
+        },[fileList])
+
 
   return (
-    <div 
+    <>
+        <div 
         ref={wrapperRef}
         className='drop-file-input'
         onDragEnter={onDragEnter}
@@ -33,12 +85,41 @@ const DropFileInput = () => {
         <div className="drop-file-input__label">
             <img src={uploadImg} alt="upload-img" />
             <p>DropFileInput</p>
-            <input type="file" value="" onChange={onFileDrop}/>
+            <input type="file" value="" onChange={handleFileDrop}/>
         </div>
     </div>
+    {
+        fileList.length > 0 ? (
+            <div className="drop-file-preview">
+                <p className="drop-file-preview__title">
+                    READY to Upload
+                </p>
+                {
+                    fileList.map((item,index)=> {
+                        return(
+                            <div key={index} className="drop-file-preview__item">
+                                <img src={ImgConfigs[item.type ? item.type.split('/')[1] : 'default']} alt="" />
+                                <div className='drop-file-preview__item__info'>
+                                    <p>{item.name}</p>
+                                    <p>{item.size}B</p>
+                                </div>
+                                <span className='drop-file-preview__item__delete' onClick={()=> fileRemove(item) }>
+                                    X
+                                </span>
+                            </div>
+                        )
+                    })
+                }
+            </div>
+        ) : null
+
+    }
+    </>
   )
 }
 
-DropFileInput.propTypes = {}
+DropFileInput.propTypes = {
+    onFileChange: PropTypes.func
+}
 
 export default DropFileInput
