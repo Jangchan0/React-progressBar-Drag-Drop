@@ -3,10 +3,20 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 import './DropFileInput.css'
 
+import { API } from '../../config';
+
 import {ImgConfigs} from '../../config/imagesConfig'
 import uploadImg from '../../assets/cloud-upload-regular-240.png'
 
+
+
 const DropFileInput = (props) => {
+
+    const [fileList, setFileList] = useState(()=>{
+        const savedList = localStorage.getItem('fileList')
+        return savedList ? JSON.parse(savedList) : []
+    })
+
 
     const handleFileDrop = (event) => {
         onFileDrop(event)
@@ -15,15 +25,27 @@ const DropFileInput = (props) => {
 
     const onFileChange = (files) => {
         const formData = new FormData();
-        formData.append('file', files[0]);
+        const newFile = files[0];
+        const fileInfo = {
+            name: newFile.name,
+            size: newFile.size,
+            type: newFile.type,
+            lastModified: newFile.lastModified
+        }
+
+        formData.append('file', newFile);
+        const updatedList = [...fileList, fileInfo]
+        setFileList(updatedList);
+        props.onFileChange(updatedList);
+        localStorage.setItem('fileList', JSON.stringify(updatedList))
 
         axios({
-            url: 'http://onecue.cafe24app.com/dev/dnd',
+            url: `${API.DND}`,
             method: 'POST',
             headers: {  'Content-Type' : 'multipart/form-data' },
             data: {
                 formData: formData,
-                filename: files[0].name
+                filename: newFile.name
             },
           }).then(response => {
             alert('통신성공');
@@ -33,12 +55,6 @@ const DropFileInput = (props) => {
             console.log(error)
           })
         }
-
-    const [fileList, setFileList] = useState(()=>{
-        const savedList = localStorage.getItem('fileList')
-        return savedList ? JSON.parse(savedList) : []
-    })
-
 
     const wrapperRef = useRef(null)
     const onDragEnter = () => wrapperRef.current.classList.add('dragover')
