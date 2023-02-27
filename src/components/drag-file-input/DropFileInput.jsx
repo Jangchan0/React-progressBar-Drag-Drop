@@ -9,84 +9,102 @@ import {ImgConfigs} from '../../config/imagesConfig'
 import uploadImg from '../../assets/cloud-upload-regular-240.png'
 
 
-
 const DropFileInput = (props) => {
-
-    const [fileList, setFileList] = useState(()=>{
-        const savedList = localStorage.getItem('fileList')
-        return savedList ? JSON.parse(savedList) : []
-    })
-
+    const [fileList, setFileList] = useState(() => {
+        const savedList = localStorage.getItem('fileList');
+        return savedList ? JSON.parse(savedList) : [];
+    });
 
     const handleFileDrop = (event) => {
-        onFileDrop(event)
-        onFileChange(event.target.files)
-    }
+        event.preventDefault();
+        const newFiles = event.dataTransfer.files.length > 0 ? event.dataTransfer.files : event.target.files;
+        onFileChange(newFiles);
+    };
 
     const onFileChange = (files) => {
         const formData = new FormData();
-        const newFile = files[0];
-        const fileInfo = {
-            name: newFile.name,
-            size: newFile.size,
-            type: newFile.type,
-            lastModified: newFile.lastModified
+        const newFileList = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const newFile = files[i];
+            const fileInfo = {
+                name: newFile.name,
+                size: newFile.size,
+                type: newFile.type,
+                lastModified: newFile.lastModified
+            };
+
+            formData.append(`file-${i}`, newFile);
+            newFileList.push(fileInfo);
         }
 
-        formData.append('file', newFile);
-        const updatedList = [...fileList, fileInfo]
+        const updatedList = [...fileList, ...newFileList];
         setFileList(updatedList);
         props.onFileChange(updatedList);
-        localStorage.setItem('fileList', JSON.stringify(updatedList))
+        localStorage.setItem('fileList', JSON.stringify(updatedList));
 
         axios({
             url: `${API.DND}`,
             method: 'POST',
-            headers: {  'Content-Type' : 'multipart/form-data' },
-            data: {
-                formData: formData,
-                filename: newFile.name
-            },
-          }).then(response => {
+            headers: { 'Content-Type' : 'multipart/form-data' },
+            data: formData,
+            maxContentLength: 10000000,
+            maxBodyLength: 10000000,
+        }).then(response => {
             alert('통신성공');
             console.log(response);
-          }).catch((error)=>{
-            alert('통신실패')
-            console.log(error)
-          })
-        }
+        }).catch((error)=>{
+            alert('통신실패');
+            console.log(error);
+        });
+    };
 
-    const wrapperRef = useRef(null)
-    const onDragEnter = () => wrapperRef.current.classList.add('dragover')
-    const onDragLeave = () => wrapperRef.current.classList.remove('dragover')
-    const onDrop = () => wrapperRef.current.classList.remove('dragover')
-
-    const onFileDrop = (e) => {
-        const newFile = e.target.files[0];
-        if( newFile ) {
-            const updatedList = [...fileList, newFile]
-            setFileList(updatedList)
-            props.onFileChange(updatedList)
-            localStorage.setItem('fileList', JSON.stringify(updatedList))
-        }
-    }
+    const wrapperRef = useRef(undefined);
+    const onDragOver = (event) => {
+        event.preventDefault();
+    };
+    const onDragEnter = () => wrapperRef.current?.classList.add('dragover');
+    const onDragLeave = () => wrapperRef.current?.classList.remove('dragover');
+    const onDrop = () => wrapperRef.current?.classList.remove('dragover');
 
     const fileRemove = (file) => {
-            const updatedList = fileList.filter(item => item !== file)
-            setFileList(updatedList)
-            props.onFileChange(updatedList)
-            localStorage.setItem('fileList', JSON.stringify(updatedList))
-    }
+        const updatedList = fileList.filter(item => item !== file);
+        setFileList(updatedList);
+        props.onFileChange(updatedList);
+        localStorage.setItem('fileList', JSON.stringify(updatedList));
+    };
 
-        useEffect(() => {
-            const savedList = JSON.parse(localStorage.getItem('fileList')) || [];
-            setFileList(savedList);
-        }, []);
+    useEffect(() => {
+        const savedList = JSON.parse(localStorage.getItem('fileList')) || [];
+        setFileList(savedList);
+    }, []);
 
-        useEffect(()=>{
-            localStorage.setItem('fileList',JSON.stringify(fileList))
-            console.log(JSON.stringify(fileList))
-        },[fileList])
+    useEffect(() => {
+        localStorage.setItem('fileList', JSON.stringify(fileList));
+    }, [fileList]);
+
+    useEffect(() => {
+        const handleDrop = (event) => {
+          event.preventDefault();
+          const newFiles = event.dataTransfer.files;
+          onFileChange(newFiles);
+        };
+        
+        const wrapper = wrapperRef.current;
+      
+        wrapper.addEventListener('drop', handleDrop);
+        wrapper.addEventListener('dragover', onDragOver);
+        wrapper.addEventListener('dragenter', onDragEnter);
+        wrapper.addEventListener('dragleave', onDragLeave);
+      
+        return () => {
+          wrapper.removeEventListener('drop', handleDrop);
+          wrapper.removeEventListener('dragover', onDragOver);
+          wrapper.removeEventListener('dragenter', onDragEnter);
+          wrapper.removeEventListener('dragleave', onDragLeave);
+        };
+      }, [wrapperRef, onFileChange, onDragOver, onDragEnter, onDragLeave]);
+
 
 
   return (
@@ -94,6 +112,7 @@ const DropFileInput = (props) => {
         <div 
         ref={wrapperRef}
         className='drop-file-input'
+        onDragOver={onDragOver}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -101,7 +120,7 @@ const DropFileInput = (props) => {
         <div className="drop-file-input__label">
             <img src={uploadImg} alt="upload-img" />
             <p>DropFileInput</p>
-            <input type="file" value="" onChange={handleFileDrop}/>
+            <input type="file" multiple={true} value="" onChange={handleFileDrop}/>
         </div>
     </div>
     {
