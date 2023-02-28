@@ -1,21 +1,21 @@
-import './App.css';
+import "./App.css";
 
-import DropFileInput from './components/drag-file-input/DropFileInput';
-
+import DropFileInput from "./components/drag-file-input/DropFileInput";
 
 function App() {
-
   const onFileChange = (files) => {
-    console.log(files)
-  }
+    console.log(files);
+  };
+  const changeFile = (files) => {
+    console.log(files);
+  };
 
   return (
     <div className="box">
-      <h2 className="header">
-        React Drag files input
-      </h2>
-      <DropFileInput 
-        onFileChange={(files)=> onFileChange(files)}
+      <h2 className="header">React Drag files input</h2>
+      <DropFileInput
+        onFileChange={(files) => onFileChange(files)}
+        changeFile={(files) => changeFile(files)}
       />
     </div>
   );
