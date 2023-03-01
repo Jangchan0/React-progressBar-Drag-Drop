@@ -3,10 +3,10 @@ import "./App.css";
 import DropFileInput from "./components/drag-file-input/DropFileInput";
 
 function App() {
-  const onFileChange = (files) => {
+  const DragDrop = (files) => {
     console.log(files);
   };
-  const changeFile = (files) => {
+  const selectFiles = (files) => {
     console.log(files);
   };
 
@@ -14,8 +14,8 @@ function App() {
     <div className="box">
       <h2 className="header">React Drag files input</h2>
       <DropFileInput
-        onFileChange={(files) => onFileChange(files)}
-        changeFile={(files) => changeFile(files)}
+        DragDrop={(files) => DragDrop(files)}
+        selectFiles={(files) => selectFiles(files)}
       />
     </div>
   );

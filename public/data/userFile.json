@@ -1,0 +1,36 @@
+{
+  "data": [
+    {
+      "_id": "63fdc77894afdd6d6b31fdf2",
+      "userId": "63fdbf6867acc2f05fbb1f28",
+      "fileName": "179795.pdf",
+      "mimeType": "application/haansoftpdf",
+      "date": "2023-02-28 18:20:56",
+      "size": "6.22MBMB"
+    },
+    {
+      "_id": "63fdcbdd4300c13ad0a7c3bd",
+      "userId": "63fdbf6867acc2f05fbb1f28",
+      "fileName": "179795.pdf",
+      "mimeType": "application/haansoftpdf",
+      "date": "2023-02-28 18:39:41",
+      "size": "6.22MBMB"
+    },
+    {
+      "_id": "63fdccfcb293099e34e7086e",
+      "userId": "63fdbf6867acc2f05fbb1f28",
+      "fileName": "179795.pdf",
+      "mimeType": "application/haansoftpdf",
+      "date": "2023-02-28 18:44:28",
+      "size": "6.22MBMB"
+    },
+    {
+      "_id": "63fdccfcb293099e34e7086f",
+      "userId": "63fdbf6867acc2f05fbb1f28",
+      "fileName": "2022학년도 학교교육과정 편성·운영 및 평가 계획(김해가야고) (1).hwp",
+      "mimeType": "application/haansofthwp",
+      "date": "2023-02-28 18:44:28",
+      "size": "0.25MBMB"
+    }
+  ]
+}

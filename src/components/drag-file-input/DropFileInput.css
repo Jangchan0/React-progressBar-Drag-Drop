@@ -1,13 +1,36 @@
+.container {
+  display: flex;
+  padding: 0 100px;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.fileUploadZone {
+  margin-right: 100px;
+  padding: 50px 50px;
+  border-radius: 20px;
+  border: 1px solid rgb(240, 240, 240);
+  background-color: #ffffff;
+  width: 800px;
+  box-shadow: var(--box-shadow);
+  min-width: 800px;
+  height: fit-content;
+}
+
 .drop-file-input {
   position: relative;
-  width: 400px;
-  height: 200px;
+  left: 60px;
+  width: 600px;
+  height: 300px;
   border: 2px dashed var(--border-color);
+
   border-radius: 20px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-bottom: 20px;
 
   background-color: var(--input-bg);
 }
@@ -16,7 +39,7 @@
   opacity: 0;
   position: absolute;
   top: 0;
-  left: 0;
+  left: 0px;
   width: 100%;
   height: 100%;
   cursor: pointer;
@@ -47,11 +70,14 @@
 }
 
 .progressBarWrapper {
-  width: 400px;
-  height: 20px;
+  position: relative;
+  bottom: 20px;
+  margin: 0 auto;
+  width: 99%;
+  height: 8px;
   border: 1px solid lightgray;
   margin-bottom: 20px;
-  border-radius: 15px;
+  border-radius: 0 0 20px 20px;
 }
 
 .progressStatus {
@@ -77,21 +103,23 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 300px;
+  flex-wrap: wrap;
 }
 
 .drop-file-preview__item__delete {
   background-color: var(--box-bg);
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: 3px;
-  top: 30%;
+  right: -10px;
+  top: 45%;
   transform: translateX(-50%);
-  box-shadow: var(--box-shadow);
+  /* box-shadow: var(--box-shadow); */
   cursor: pointer;
   transition: opacity 0.3s ease-in-out;
 }
@@ -106,7 +134,7 @@
 }
 
 .sendButton {
-  margin: 20px auto;
+  margin: 20px 30px;
   width: 70px;
   height: 40px;
   background-color: white;
@@ -116,6 +144,22 @@
   cursor: pointer;
 }
 .sendButton:hover {
+  transition: 0.5s;
+  transform: scale(1.1);
+}
+
+.abortButton {
+  margin: 20px 10px;
+  width: 70px;
+  height: 40px;
+  background-color: white;
+  border-radius: 5px;
+  border: 1px solid lightgray;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.abortButton:hover {
   transition: 0.5s;
   transform: scale(1.1);
 }
