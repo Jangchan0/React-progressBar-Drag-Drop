@@ -25,22 +25,34 @@ const DropFileInput = (props) => {
 
   const [isSameFile, setIsSameFile] = useState([]);
   const newFileList = [];
-  const [progressPercent, setProgressPercent] = useState(0);
 
-  const [progressList, setProgressList] = useState([]);
+  const [progressList, setProgressList] = useState(0);
 
   const uploadRef = useRef();
   const statusRef = useRef();
   const loadTotalRef = useRef();
   const progressRef = useRef();
+
+  const formData = new FormData();
+
   ////////////////////////////////////////////////////////////////////////////////////////////
-  const source = CancelToken.source();
 
   const selectFiles = async () => {
+    setProgressList(Array(uploadRef.current.files.length).fill(0));
     for (let i = 0; i < uploadRef.current.files.length; i++) {
       const file = uploadRef.current.files[i];
       setFileList((prev) => [...prev, file]);
       newFileList.push(file);
+
+      formData.append(`file${i + 1}`, file);
+
+      // 개별 파일에 대한 onUploadProgress 핸들러 설정
+      formData[`onUploadProgress${i + 1}`] = (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        console.log(`file${i + 1}:`, percentCompleted, "%");
+      };
 
       axios
         .get(
@@ -55,8 +67,6 @@ const DropFileInput = (props) => {
         .then((response) => {
           if (`${response.data.message}`.includes(file.name)) {
             setIsSameFile((prev) => [...prev, `${file.name}`]);
-
-            console.log("isSameFile", isSameFile);
           }
         })
         .catch((error) => console.log(error));
@@ -67,12 +77,21 @@ const DropFileInput = (props) => {
     props.DragDrop(updatedList);
     props.selectFiles(updatedList);
   };
-
-  const DragDrop = async (files) => {
-    for (let i = 0; i < files.length; i++) {
-      const newFile = files[i];
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  const DragDrop = async (e) => {
+    setProgressList(Array(e.length).fill(0));
+    for (let i = 0; i < e.length; i++) {
+      const newFile = e[i];
       setFileList((prev) => [...prev, newFile]);
       newFileList.push(newFile);
+
+      formData.append(`file${i + 1}`, newFile);
+      formData[`onUploadProgress${i + 1}`] = (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        console.log(`file${i + 1}:`, percentCompleted, "%");
+      };
 
       axios
         .get(
@@ -91,57 +110,46 @@ const DropFileInput = (props) => {
         })
         .catch((error) => console.log(error));
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
     const updatedList = [...fileList, ...newFileList];
     setFileList(updatedList);
     props.DragDrop(updatedList);
     props.selectFiles(updatedList);
   };
 
-  /////////////////////////////////////////////////////////////////////////////
+  const sendFormData = async () => {
+    const promises = fileList.map((file, index) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("index", index);
 
-  const sendFormData = () => {
-    axios({
-      url: `${API.DND}`,
-      method: "POST",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzZmRiZjY4NjdhY2MyZjA1ZmJiMWYyOCIsImlhdCI6MTY3NzU3NDE2N30.jPDFeGXqn-D_SIBNoyGcV1MJjSBBWgy_irsV51XKnDU",
-      },
-      data: fileList,
-      maxContentLength: 10000000, // 엑시오스 용량 늘리기
-      maxBodyLength: 10000000, // 엑시오스 용량 늘리기
-      cancelToken: source.token, // cancel token 추가
-
-      onUploadProgress: (e) => {
-        const percent = (e.loaded / e.total) * 100;
-        fileList.map((item, i) => {
-          setProgressList((prev) => {
-            return [...prev.slice(0, i), percent, ...prev.slice(i + 1)];
+      return axios({
+        url: `${API.DND}`,
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzZmRiZjY4NjdhY2MyZjA1ZmJiMWYyOCIsImlhdCI6MTY3NzU3NDE2N30.jPDFeGXqn-D_SIBNoyGcV1MJjSBBWgy_irsV51XKnDU",
+        },
+        data: formData,
+        maxContentLength: 10000000, // 엑시오스 용량 늘리기
+        maxBodyLength: 10000000, // 엑시오스 용량 늘리기
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgressList((prevProgressList) => {
+            const updatedProgressList = [...prevProgressList];
+            const fileIndex = parseInt(formData.get("index"));
+            updatedProgressList[fileIndex] = percentCompleted;
+            return updatedProgressList;
           });
-        });
-
-        statusRef.current.innerHTML = `${Math.round(percent)}% uploaded...`;
-        setProgressPercent(progressRef.current.value);
-        loadTotalRef.current.innerHTML = `uploaded ${e.loaded} bytes of ${e.total}`;
-      },
-    })
-      .then((response) => {
-        alert(response.data.message);
-        console.log(response);
-        statusRef.current.innerHTML = "업로드 완료";
-        console.log(fileList);
-        // setFileList([]);
-      })
-      .catch((error) => {
-        if (axios.isCancel(error)) {
-          console.log("Upload canceled");
-        } else {
-          alert("통신실패");
-          console.log(error.response);
-          statusRef.current.innerHTML = "업로드 실패";
-        }
+        },
       });
+    });
+
+    await Promise.all(promises);
   };
 
   const AbortHandler = () => {
@@ -242,13 +250,26 @@ const DropFileInput = (props) => {
               <p className="progressStatus" ref={statusRef}></p>
               <p ref={loadTotalRef} />
 
-              {fileList.map((item, index) => {
-                console.log(fileList);
+              {fileList.map((item, i) => {
                 const logo = item.name.split(".").pop();
                 const imgSrc = logo === "pdf" ? pdfLogo : hwpLogo;
+
+                const getByteSize = (size) => {
+                  const byteUnits = ["KB", "MB", "GB", "TB"];
+
+                  for (let i = 0; i < byteUnits.length; i++) {
+                    size = Math.floor(size / 1024);
+
+                    if (size < 1024) return size.toFixed(1) + byteUnits[i];
+                  }
+                };
+
                 return (
                   <>
-                    <div key={index} className="drop-file-preview__item">
+                    <div
+                      key={item.fileName}
+                      className="drop-file-preview__item"
+                    >
                       <img src={imgSrc} alt="" />
                       <div className="drop-file-preview__item__info">
                         <p
@@ -258,7 +279,7 @@ const DropFileInput = (props) => {
                         >
                           {item.name}
                         </p>
-                        <p>{item.size}B</p>
+                        <p>{getByteSize(item.size)}</p>
                       </div>
 
                       <span
@@ -294,10 +315,11 @@ const DropFileInput = (props) => {
                         className="progressBar"
                         ref={progressRef}
                         style={{
-                          width: `${progressList[index] ?? 0}%`,
+                          width: `${progressList[i]}%`,
                           height: "100%",
                           borderRadius: "15px",
-                          backgroundColor: "#c0c0c0",
+                          backgroundColor: "#849ffa",
+                          borderRadius: "0 0 20px 20px",
                         }}
                       />
                     </div>
@@ -309,7 +331,6 @@ const DropFileInput = (props) => {
           <div className="sendButtonWrapper"></div>
         </div>
         <UserFileList />
-        {/* userKey={localStorage.getItem("token")} /> */}
       </div>
     </>
   );
