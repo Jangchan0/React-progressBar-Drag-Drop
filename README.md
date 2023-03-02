@@ -1,6 +1,7 @@
 # React-Progress,Drag&Drop
 
-![Progress,Drag Drop](https://user-images.githubusercontent.com/117936577/222388510-052f1b96-5981-4137-94f2-f7bbba429344.gif)
+
+![Progress,Drag Drop](https://user-images.githubusercontent.com/117936577/222390640-cb355d1b-c7c7-4070-a5c2-4cb433c871a5.gif)
 
 
 ## 설명
