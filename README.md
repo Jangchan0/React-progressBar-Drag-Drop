@@ -1,4 +1,5 @@
-# DropFileInput 컴포넌트에서 모든 로직이 이루어집니다.
+![Progress,Drag Drop](https://user-images.githubusercontent.com/117936577/222388510-052f1b96-5981-4137-94f2-f7bbba429344.gif)
+
 
 ## 설명
 
